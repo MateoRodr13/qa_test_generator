@@ -1,0 +1,52 @@
+[
+  {
+    "summary": "GestiÃ³n de Alertas y NBA - DiseÃ±o",
+    "steps": [
+      {
+        "action": "AS A: Usuario grÃ¡fico LIMSP I WANT TO: Acceder a la herramienta GestiÃ³n de Alertas y NBA (antigua GestiÃ³n de NBA)",
+        "input_data": "",
+        "expected_result": "El diseÃ±o y los literales deben coincidir con los descritos en el punto 5.1 del AF: [https://confluence.corp.latiniaservices.com/x/WQMdAg] Se deberÃ¡n visualizar por defecto las NBAs que haya disponible."
+      },
+      {
+        "action": "AS A: Usuario grÃ¡fico LIMSP I WANT TO: Seleccionar la opciÃ³n Alertas en el nuevo combo que aparece en la parte superior derecha .",
+        "input_data": "",
+        "expected_result": "Al seleccionar la opciÃ³n Alertas se deberÃ¡n visualizar todas las alertas que haya disponible."
+      },
+      {
+        "action": "AS A: Usuario grÃ¡fico LIMSP I WANT TO: Hacer logout de la aplicaciÃ³n. AND: Hacer login AND: Acceder a la herramienta de GestiÃ³n de Alertas y NBA",
+        "input_data": "",
+        "expected_result": "Al acceder de nuevo a la herramienta se deberÃ¡n visualizar la informaciÃ³n correspondiente a las Alertas"
+      }
+    ]
+  },
+  {
+    "summary": "ENABLEMSGRESEND - ReenvÃ­o de mensajes",
+    "steps": [
+      {
+        "action": "AS A: AplicaciÃ³n MT I WANT TO: Enviar un SMS, asignando un id y un timestamp <message id='SMS desde Automated' ts='0000000000000'> <head> <type ref='sms'> <format>text</format> <mroute>MT</mroute> </type> <info> <gsmDest>659000001</gsmDest> <loginEnterprise>INNOVUS</loginEnterprise> <refContract>conTest</refContract> <customer KeyValue='userOrg1'></customer> </info> </head> <body> <contentOut>test SMS</contentOut> </body> </message>}}",
+        "input_data": "",
+        "expected_result": "Verificar que se ha enviado correctamente el mensaje # El SMS llega al colector Virtual. # En la herramienta CMC, ir al usuario userOrg1 en la company LATINIA, pestaÃ±a 360, y verificar que los dos mensajes aparecen en el cuadroltimas notificaciones."
+      },
+      {
+        "action": "AS A: Usuario grÃ¡fico I WANT TO: Desde la pestaÃ±a 360 reenviar el SMS pulsando el icono de la flecha circular de la izquierda del mismo.",
+        "input_data": "Invocar manualmente al hist&summary",
+        "expected_result": "Verificar que: # El SMS reenviado llega al colector Virtual, # Que aparece en el Detalle de mensajes (estadÃ­sticas), # Aparece en la pestaÃ±a 360 del CMC (al refrescar)"
+      }
+    ]
+  },
+  {
+    "summary": "NBAs encadenadas",
+    "steps": [
+      {
+        "action": "AS A: Usuario de LIMSP I WANT TO: Crear la informaciÃ³n necesaria para ejecutar el TEST.",
+        "input_data": "UsuarioCMC: \"\"userChainedNBA\"\" Trama: \"\"frameChainedNBA\"\" OperaciÃ³n: \"\"serviceChainedNBA\"\" CategoriaNba: \"\"categoryChainedNBA\"\" Nba1: \"\"chainedNBA1\"\" con la prioridad mas alta. Nba2: \"\"chainedNBA2\"\" con la prioridad intermedia. Nba3: \"\"chainedNBA3\"\" con la prioridad mas baja. Plantillas: SMS, EMAIL, PNS y Whatsapp para cada NBA.",
+        "expected_result": "Validar que la informaciÃ³n necesaria sea existente."
+      },
+      {
+        "action": "AS A: Usuario de LIMSP I WANT TO: Verificar que la opciÃ³n 'Seguir enlazando mÃ¡s NBAsâ€™ para la NBA \"\"chainedNBA3\"\" esta inactiva. AND: Enviar evento que solo cumpla las condiciones de dicha NBA.",
+        "input_data": "VÃ­a API: \"\"chained\"\" = \"\"false\"\" VÃ­a GUI: !xray-attachment://a62c6292-3aa4-4255-a211-d3834256ebb1|width=1629,height=62!",
+        "expected_result": "Observar (desde EventMonitor) que se han analizado previamente las NBA \"\"chainedNBA1\"\" y \"\"chainedNBA2\"\". Verificar que no se analicen las NBA \"\"chainedNBA1\"\" y \"\"chainedNBA2\"\". Validar la recepciÃ³n y contenido de los diferentes tipos de mensajes enviados por la NBA."
+      }
+    ]
+  }
+]

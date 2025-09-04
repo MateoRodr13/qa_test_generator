@@ -1,0 +1,36 @@
+HU-XX - Hide and restrict the option to unlink customer objects
+
+User Story
+----------
+As a user graphic LIMSP
+I want the option to unlink customer objects to be hidden and protected
+So that accidental unlinks of critical data are prevented.
+
+Acceptance Criteria (Gherkin)
+-----------------------------
+1. Initial disabled state
+   Given a user accesses the customer objects list
+   When the unlink icons are displayed
+   Then these should appear disabled by default.
+
+2. Enabling from the menu
+   Given a user wants to enable the unlink option
+   When they open the three-dots menu and select “Allow unlinking objects”
+   Then the unlink icons in the list will be enabled.
+
+3. Warning with object reference
+   Given a user selects the action to unlink an object
+   When the warning message is displayed
+   Then it must show the unique reference of the object to be unlinked
+   And must include a mandatory confirmation checkbox before executing the action.
+
+4. Mandatory confirmation
+   Given a user sees the warning message
+   When the confirmation checkbox is not checked
+   Then the unlink action cannot be completed.
+
+Non-functional Criteria
+-----------------------
+- The confirmation must be clear, visible, and mandatory.
+- The change must not affect the performance of the object list visualization.
+- It must comply with the company’s security policies (prevention of accidental critical operations).

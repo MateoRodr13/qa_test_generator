@@ -1,8 +1,6 @@
 # src/main.py
-import os
-from file_handler import load_json_examples, load_user_story_from_txt
-from ai_generator2 import generate_test_cases
-from output_handler import save_cases_to_csv
+from src.utils.file_handler import load_json_examples, load_user_story_from_txt
+from src.agents.ai_generator import *
 
 # Define the paths for input and output files relative to the project root
 # This assumes you run the script from the root 'qa_test_generator/' directory
@@ -23,7 +21,12 @@ def main():
 
     # 1. Load data from files
     examples = load_json_examples(EXAMPLES_PATH)
-    user_story = load_user_story_from_txt(USER_STORY_PATH)
+    user_story_description = load_user_story_from_txt(USER_STORY_PATH)
+    user_story = generate_user_story(user_story_description)
+
+    print("--- Convert user story to scrum ---")
+    print(user_story)
+    print("--- Completion of converting user story to scrum ---")
 
     if not examples or not user_story:
         print("--- Process stopped due to errors loading files. ---")
@@ -36,7 +39,7 @@ def main():
     if ai_response:
         print("\n--- RAW RESPONSE RECEIVED FROM AI ---")
         print(ai_response)
-        save_cases_to_csv(ai_response, CSV_OUTPUT_PATH)
+        #save_cases_to_csv(ai_response, CSV_OUTPUT_PATH)
     else:
         print("\n--- NO RESPONSE RECEIVED FROM AI ---")
 

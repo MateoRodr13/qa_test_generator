@@ -1,4 +1,4 @@
-# src/ai_generator2.py
+# src/ai_generator1.py
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ if not api_key:
 genai.configure(api_key=api_key)
 
 # Initialize the model to be ready for use
-MODEL = genai.GenerativeModel('gemini-1.5-flash-latest')
+MODEL = genai.GenerativeModel('gemini-2.5-flash')
 
 def _build_prompt(user_story, examples):
     """Private function to build a more robust final prompt with an explicit schema."""
@@ -70,6 +70,87 @@ def generate_test_cases(user_story, reference_examples):
     final_prompt = _build_prompt(user_story, reference_examples)
 
     print("✅ Prompt built. Sending to the Gemini API...")
+
+    try:
+        response = MODEL.generate_content(final_prompt)
+        return response.text
+    except Exception as e:
+        print(f"\n❌ An error occurred while calling the API: {e}")
+        return None
+
+
+def _build_prompt_user_story(description: str) -> str:
+    """
+    Build a prompt to generate SCRUM User Stories in English and Spanish.
+    """
+    return f"""
+You are an Agile Business Analyst and Product Owner expert in SCRUM.
+
+Task:
+1. Translate the following input from Spanish to English (without losing context or details).
+2. Create a User Story in SCRUM format in English:
+   - ID: HU-XX
+   - Title
+   - User Story (As a..., I want..., So that...)
+   - Acceptance Criteria (in Gherkin format Given/When/Then, numbered)
+   - Non-functional Criteria
+3. Provide the same User Story in Spanish with identical structure.
+
+Input (Spanish):
+\"\"\"{description}\"\"\"
+
+Output format:
+ENGLISH VERSION
+---------------
+HU-XX - [Title in English]
+
+User Story
+----------
+As a [role]
+I want [functionality]
+So that [benefit]
+
+Acceptance Criteria (Gherkin)
+-----------------------------
+1. ...
+   Given ...
+   When ...
+   Then ...
+
+Non-functional Criteria
+-----------------------
+- ...
+
+SPANISH VERSION
+---------------
+HU-XX - [Título en Español]
+
+User Story
+----------
+Como [rol]
+Quiero [funcionalidad]
+Para [beneficio]
+
+Acceptance Criteria (Gherkin)
+-----------------------------
+1. ...
+   Dado ...
+   Cuando ...
+   Entonces ...
+
+Non-functional Criteria
+-----------------------
+- ...
+"""
+
+
+def generate_user_story(description: str) -> str:
+    """
+    Generates a bilingual SCRUM User Story (EN/ES) using Gemini.
+    """
+    final_prompt = _build_prompt_user_story(description)
+
+    print("✅ Prompt for User Story built. Sending to the Gemini API...")
 
     try:
         response = MODEL.generate_content(final_prompt)

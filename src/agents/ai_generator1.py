@@ -1,4 +1,4 @@
-# ai_generator2.py
+# ai_generator1.py
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ if not api_key:
 genai.configure(api_key=api_key)
 
 # Initialize the model to be ready for use
-MODEL = genai.GenerativeModel('gemini-1.5-flash-latest')
+MODEL = genai.GenerativeModel('gemini-2.5-flash')
 
 
 def _build_prompt(user_story, examples):

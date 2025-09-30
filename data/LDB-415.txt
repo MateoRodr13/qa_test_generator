@@ -1,0 +1,35 @@
+LDB-415 - Rollback Script for Consolidate
+
+User Story
+----------
+As a system administrator
+I want a rollback script to return to the original consolidate
+So that I can recover the system in case of unresolved issues with the new consolidate from SummaryProc.
+
+Acceptance Criteria (Gherkin)
+-----------------------------
+1. Script availability
+   Given the consolidateGroup summary has been launched
+   When a rollback is required
+   Then the script must be available to execute and restore the original consolidate.
+
+2. Data correction
+   Given the script execution starts
+   When it reviews HIST_ADDRESS.TS_EXPIRE from the earliest date to the last consolidated day
+   Then it must add missing final states and update HIST_ADDRESS records as finalized, consolidated, and summarized.
+
+3. Schema validation
+   Given the script is executed
+   When the schema is not healthy
+   Then missing summary days must be rebuilt before proceeding with rollback.
+
+4. Statistics rebuild
+   Given the rollback process is complete
+   When the interval days are defined (e.g., daysToConsolidate = 3)
+   Then statistics for the corresponding days prior to the change must be rebuilt.
+
+Non-functional Criteria
+-----------------------
+- The rollback process must ensure data integrity and consistency across HIST_ADDRESS and HIST_STATUS_DETAIL.
+- The solution must not degrade the normal performance of ongoing consolidate processes.
+- The rollback script must comply with internal standards for production environments.

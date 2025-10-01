@@ -1,0 +1,3 @@
+Como administrador de un sistema de inventario,
+Quiero poder agregar nuevos productos al catálogo,
+Para mantener actualizado el inventario de la tienda.

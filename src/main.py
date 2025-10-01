@@ -1,6 +1,9 @@
 # src/main.py
-from src.utils.file_handler import load_json_examples, load_user_story_from_txt
-from src.agents.ai_generator import *
+import os
+from datetime import datetime
+from src.workflows.workflow_manager import WorkflowManager
+from src.cli.interface import cli
+from src.logger import logger
 
 # Define the paths for input and output files relative to the project root
 # This assumes you run the script from the root 'qa_test_generator/' directory
@@ -10,40 +13,30 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "output")
 
 EXAMPLES_PATH = os.path.join(DATA_DIR, "prompt_examples.json")
 USER_STORY_PATH = os.path.join(DATA_DIR, "user_story.txt")
+USER_STORY_OUTPUT_PATH = os.path.join(OUTPUT_DIR, "generated_user_story.txt")
 CSV_OUTPUT_PATH = os.path.join(OUTPUT_DIR, "generated_test_cases.csv")
 
 def main():
-    """Main function of the program."""
-    print("--- Starting AI Test Case Generator ---")
+    """Main function with complete interactive workflow using WorkflowManager."""
+    cli.display_welcome()
+    logger.info("Starting AI Test Case Generator - Interactive Mode")
 
     # Ensure output directory exists
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # 1. Load data from files
-    examples = load_json_examples(EXAMPLES_PATH)
-    user_story_description = load_user_story_from_txt(USER_STORY_PATH)
-    user_story = generate_user_story(user_story_description)
+    # Initialize Workflow Manager
+    workflow_manager = WorkflowManager()
 
-    print("--- Convert user story to scrum ---")
-    print(user_story)
-    print("--- Completion of converting user story to scrum ---")
+    # Execute complete workflow (with initial selection)
+    context = workflow_manager.execute_complete_workflow(interactive=True, base_output_dir=OUTPUT_DIR)
 
-    if not examples or not user_story:
-        print("--- Process stopped due to errors loading files. ---")
-        return
-
-    # 2. Call the AI generator to get the response
-    ai_response = generate_test_cases(user_story, examples)
-
-    # 3. Process and save the response to a CSV file
-    if ai_response:
-        print("\n--- RAW RESPONSE RECEIVED FROM AI ---")
-        print(ai_response)
-        #save_cases_to_csv(ai_response, CSV_OUTPUT_PATH)
+    # Check final status
+    if context.state.value == "completed":
+        logger.info("Interactive workflow completed successfully")
     else:
-        print("\n--- NO RESPONSE RECEIVED FROM AI ---")
-
-    print("\n--- Process finished. ---")
+        logger.error(f"Workflow failed with state: {context.state.value}")
+        if 'error' in context.metadata:
+            logger.error(f"Error details: {context.metadata['error']}")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,12 @@
+[Maquetación] Carga de ficheros adjuntos en plantilla
+
+Descripción:
+Se solicita modificar el formulario de creación/edición de ficheros para que se puedan añadir ficheros adjuntos.
+
+Se deberán realizar las siguientes validaciones:
+
+- Validación del nombre del fichero
+
+- Validación del mime type según whitelist
+
+- Validación del tamaño de los ficheros adjuntos.

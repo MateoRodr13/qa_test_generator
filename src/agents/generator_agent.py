@@ -3,7 +3,63 @@ Legacy AI generator functions - refactored to use new agent system.
 """
 
 from .agent_factory import create_agent
+from ..prompts.test_case_prompt import TestCasePrompt
 from ..logger import logger
+
+def _validate_keyword_preservation(response: str) -> bool:
+    """
+    Validate that Spanish test cases preserve English Gherkin keywords.
+    """
+    try:
+        import json
+        data = json.loads(response)
+
+        if 'spanish_test_cases' not in data:
+            return True  # No Spanish test cases to validate
+
+        for test_case in data['spanish_test_cases']:
+            # Check all STEP keys
+            for key, step in test_case.items():
+                if key.startswith('STEP'):
+                    action = step.get('ACTION', '')
+                    # Check for incorrect translations
+                    if 'COMO' in action.upper() or 'QUIERO' in action.upper():
+                        return False
+                    # Ensure English keywords are present
+                    if not ('AS A:' in action.upper() and 'I WANT TO:' in action.upper()):
+                        return False
+
+        return True
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return False
+
+
+def _correct_keyword_preservation(response: str) -> str:
+    """
+    Attempt to correct Spanish test cases by replacing translated keywords with English ones.
+    """
+    try:
+        import json
+        import re
+
+        data = json.loads(response)
+
+        if 'spanish_test_cases' not in data:
+            return response
+
+        for test_case in data['spanish_test_cases']:
+            for key, step in test_case.items():
+                if key.startswith('STEP'):
+                    action = step.get('ACTION', '')
+                    # Replace common incorrect translations
+                    action = re.sub(r'\bCOMO\b', 'AS A:', action, flags=re.IGNORECASE)
+                    action = re.sub(r'\bQUIERO\b', 'I WANT TO:', action, flags=re.IGNORECASE)
+                    step['ACTION'] = action
+
+        return json.dumps(data, ensure_ascii=False, indent=2)
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return None
+
 
 def _build_test_case_prompt(user_story, examples):
     """Build prompt for bilingual test case generation."""
@@ -51,8 +107,9 @@ The JSON object MUST strictly adhere to the following schema:
   ]
 }}
 
-The 'Action' value in English MUST use the format: 'AS A: [ROLE] I WANT TO: [ACTION]'.
-The 'Action' value in Spanish MUST use the format: 'COMO [ROL] QUIERO: [ACCIÓN]'.
+The 'Action' value in English MUST use the format: 'AS A: [ROLE] I WANT TO: [ACTION] AND: [ANOTHER ACTION IF NEEDED]'.
+The 'Action' value in Spanish MUST use the format: 'AS A: [ROL] I WANT TO: [ACCIÓN] AND: [OTRA ACCIÓN SI ES NECESARIO]'.
+The notation 'AS A', 'I WANT TO' and 'AND' MUST be in English even in the Spanish version by obligation.
 
 ---
 USER STORY TO ANALYZE:
@@ -71,15 +128,27 @@ def generate_test_cases(user_story, reference_examples, provider="gemini"):
     logger.info(f"Starting test case generation with provider: {provider}")
 
     agent = create_agent(provider)
-    prompt = _build_test_case_prompt(user_story, reference_examples)
+    prompt_obj = TestCasePrompt()
+    prompt = prompt_obj.render(user_story, reference_examples)
 
     logger.info("Prompt built, sending to AI agent")
 
     try:
         response = agent.generate_response(prompt)
         if agent.validate_response(response):
-            logger.info("Test cases generated successfully")
-            return response
+            # Additional validation for keyword preservation
+            if _validate_keyword_preservation(response):
+                logger.info("Test cases generated successfully")
+                return response
+            else:
+                logger.warning("Test cases generated but keywords not preserved, attempting correction")
+                corrected_response = _correct_keyword_preservation(response)
+                if corrected_response:
+                    logger.info("Test cases corrected successfully")
+                    return corrected_response
+                else:
+                    logger.error("Failed to correct keyword preservation")
+                    return response  # Return original if correction fails
         else:
             logger.error("Invalid response from AI agent")
             return None

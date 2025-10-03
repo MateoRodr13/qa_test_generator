@@ -17,9 +17,14 @@
 - [x] **Guardar los tests generados en archivos .json**
 - [x] **Guardar los tests generados en archivos .csv para importación en Jira**
 - [x] **Traducción automática de los tests generados al español**
+- [x] **Preservación de keywords Gherkin en inglés para tests en español**
+- [x] **Generación automática de archivos JSON individuales por test case**
+- [x] **Formateo avanzado con saltos de línea en campos ACTION**
+- [x] **Conversión alfanumérica inteligente de datos complejos**
 - [x] **Aceptación interactiva de los tests por parte del usuario**
 - [x] **Si los tests no son aceptados, opciones para regenerar o editar**
 - [x] **Las modificaciones se realizan en archivo .json proporcionado por el programa**
+- [x] **Validación automática y corrección de traducciones incorrectas**
 
 ### 🏗️ Arquitectura y Ejecución
 - [x] **Ejecución correcta desde entorno virtual (.venv)**
@@ -50,6 +55,33 @@
 - [x] **Manejo robusto de archivos de entrada/salida**
 - [x] **Validación de JSON y manejo de errores**
 - [x] **Context managers para métricas**
+
+## 🎯 Características Avanzadas Implementadas
+
+### 📁 Sistema de Archivos Individuales
+- [x] **Generación automática de archivos JSON individuales por test case**
+- [x] **Estructura organizada con directorio `test/` dedicado**
+- [x] **Nombres de archivos basados en ID del test case**
+- [x] **Formato simplificado: ACTION, DATA, RESULT**
+- [x] **Soporte completo para ambos idiomas (EN/ES)**
+
+### 🔧 Procesamiento Inteligente de Datos
+- [x] **Conversión alfanumérica automática de objetos complejos**
+- [x] **Formateo de arrays como listas separadas por comas**
+- [x] **Manejo inteligente de valores null**
+- [x] **Saltos de línea en campos ACTION para mejor legibilidad**
+
+### ✅ Validación y Corrección Automática
+- [x] **Detección de traducciones incorrectas de keywords Gherkin**
+- [x] **Corrección automática de "COMO/QUIERO" → "AS A/I WANT TO"**
+- [x] **Validación post-procesamiento de respuestas de IA**
+- [x] **Sistema de recuperación graceful con fallback**
+
+### 📂 Sistema de Archivos Mejorado
+- [x] **Detección automática de archivos sin extensión .txt**
+- [x] **Soporte flexible para diferentes formatos de entrada**
+- [x] **Estructura de directorios organizada por timestamp**
+- [x] **Nombres de archivos descriptivos con contexto**
 
 ## 🎯 Características Adicionales Implementadas
 

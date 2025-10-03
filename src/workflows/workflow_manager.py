@@ -6,6 +6,7 @@ Coordinates between user story and test case workflows.
 from enum import Enum
 from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from pathlib import Path
 
 from ..utils.file_handler import load_json_examples, load_user_story_from_txt
 from ..cli.interface import cli
@@ -84,7 +85,6 @@ class WorkflowManager:
                     return context
 
                 # Create run directory with input filename
-                from pathlib import Path
                 import os
                 from datetime import datetime
 
@@ -176,7 +176,7 @@ class WorkflowManager:
 
             # Load examples (use default path for now)
             from ..config import settings
-            examples_path = str(settings.data_dir / "prompt_examples.json")
+            examples_path = str(settings.data_dir / "prompt_examples/prompt_examples.json")
             examples = load_json_examples(examples_path)
             if not examples:
                 cli.display_error("Failed to load examples")

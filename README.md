@@ -1,10 +1,10 @@
 # QA Test Generator 🤖
 
-*AI-powered QA Test Case Generator with bilingual support (English/Spanish) and interactive workflows*
+*AI-powered QA Test Case Generator with bilingual support (English/Spanish), individual test file generation, and interactive workflows*
 
 [![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Status](https://img.shields.io/badge/status-development-orange.svg)]()
+[![Status](https://img.shields.io/badge/status-stable-green.svg)]()
 
 > **⚠️ DEVELOPMENT STATUS**: This project is under active development. Features and APIs may change.
 
@@ -32,7 +32,7 @@
 
 ## 🎯 Overview
 
-**QA Test Generator** is a professional command-line application that automates the generation of QA test cases from user stories using artificial intelligence. The system leverages multiple AI providers (Google Gemini and OpenAI) to create comprehensive, bilingual test documentation in SCRUM format.
+**QA Test Generator** is a professional command-line application that automates the generation of QA test cases from user stories using artificial intelligence. The system leverages multiple AI providers (Google Gemini and OpenAI) to create comprehensive, bilingual test documentation in SCRUM format, with automatic generation of individual test case files and intelligent formatting for enhanced usability.
 
 ### 🎯 Mission
 Transform manual QA test case creation into an automated, intelligent process that maintains high quality while supporting both English and Spanish workflows.
@@ -53,6 +53,7 @@ Become the standard tool for agile teams seeking to streamline their QA processe
 - **Complete EN/ES Coverage**: User stories and test cases in both languages
 - **Cultural Adaptation**: Localized terminology and expressions
 - **Parallel Generation**: Simultaneous bilingual output
+- **Gherkin Keyword Preservation**: Maintains English Gherkin keywords (AS A, I WANT TO, etc.) in Spanish test cases for QA standards compliance
 
 ### 🔄 Interactive Workflows
 - **User Story Workflow**: Generate → Review → Accept/Modify → Regenerate
@@ -68,8 +69,16 @@ Become the standard tool for agile teams seeking to streamline their QA processe
 ### 📊 Quality Assurance
 - **Automated Validation**: Input/output validation at every step
 - **Error Recovery**: Graceful handling of API failures and retries
+- **Intelligent Correction**: Automatic fixing of Gherkin keyword translations
 - **Caching System**: Intelligent response caching for performance
 - **Metrics Collection**: Usage tracking and performance monitoring
+
+### 📁 Advanced Output Management
+- **Individual Test Files**: Automatic generation of separate JSON files per test case
+- **Structured Organization**: Dedicated `test/` directory for individual test cases
+- **Enhanced Formatting**: Line breaks in ACTION fields for better readability
+- **Alphanumeric Conversion**: Smart data type conversion for compatibility
+- **Flexible File Detection**: Support for .txt files and files without extensions
 
 ---
 
@@ -196,8 +205,9 @@ Do you accept these Test Cases? (y/N): y
 
 QA Test Generation Complete!
 Generated files:
-  * User Stories: output/generated_user_story_*.txt
-  * Test Cases: output/generated_test_cases_*.csv
+  * User Stories: output/run_*/UI-1050_user_story_*.txt
+  * Test Cases: output/run_*/UI-1050_test_cases_*.json
+  * Individual Tests: output/run_*/test/*.json
 ```
 
 ---
@@ -216,6 +226,8 @@ This provides:
 - Content preview before acceptance
 - Modification opportunities
 - Progress feedback
+- Automatic generation of individual test case files
+- Organized output structure with dedicated test directories
 
 ### Programmatic Usage
 
@@ -227,16 +239,16 @@ manager = WorkflowManager()
 
 # Execute complete workflow
 context = manager.execute_complete_workflow(
-    user_story_path="data/user_story.txt",
-    examples_path="data/prompt_examples.json",
-    interactive=False
+   user_story_path="data/user_story.txt",
+   examples_path="data/prompt_examples/prompt_examples.json",
+   interactive=False
 )
 
 # Check results
 if context.state == "completed":
-    print("Success!")
-    print(f"User Story: {context.final_user_story[:100]}...")
-    print(f"Test Cases: {len(context.final_test_cases)} characters")
+   print("Success!")
+   print(f"User Story: {context.final_user_story[:100]}...")
+   print(f"Test Cases: {len(context.final_test_cases)} characters")
 ```
 
 ### Individual Components
@@ -251,7 +263,7 @@ story = generate_user_story("User needs to login securely")
 from src.agents.generator_agent import generate_test_cases
 from src.utils.file_handler import load_json_examples
 
-examples = load_json_examples("data/prompt_examples.json")
+examples = load_json_examples("data/prompt_examples/prompt_examples.json")
 test_cases = generate_test_cases(story, examples)
 ```
 
@@ -331,9 +343,11 @@ pytest tests/e2e/
 ### Current Test Coverage
 
 - ✅ **Prompts System**: Unit tests for template validation
-- ✅ **Core Functionality**: Integration tests for AI generation
-- 🔄 **Workflows**: Basic integration tests (in development)
-- 🔄 **CLI Interface**: E2E tests (planned)
+- ✅ **AI Generation**: Complete unit tests for all generators
+- ✅ **Output Handling**: Tests for CSV, JSON, and individual file generation
+- ✅ **Workflows**: Full integration tests for workflow management
+- ✅ **File Operations**: Comprehensive file handling tests
+- ✅ **Data Processing**: Alphanumeric conversion and formatting tests
 
 ### Writing Tests
 
@@ -398,7 +412,11 @@ qa-test-generator/
 │   └── e2e/
 ├── data/                         # Input data files
 │   ├── user_story.txt            # Sample user story
-│   └── prompt_examples.json      # Test case examples
+│   ├── UI-915.txt               # Additional user stories
+│   ├── LDB-415.txt              # Additional user stories
+│   ├── UI-1050.txt              # Additional user stories
+│   └── prompt_examples/         # Test case examples directory
+│       └── prompt_examples.json # Test case examples
 ├── output/                       # Generated files
 ├── logs/                         # Application logs
 ├── pyproject.toml               # Modern Python configuration
@@ -455,15 +473,26 @@ prompt_text = user_story_prompt.render(description="User login feature")
 #### File Operations
 ```python
 from src.utils.file_handler import load_json_examples, load_user_story_from_txt
-from src.utils.output_handler import save_cases_to_csv, save_user_story_to_files
+from src.utils.output_handler import (
+    save_cases_to_csv, save_user_story_to_files,
+    generate_individual_test_files, _format_action_with_line_breaks,
+    _to_alphanumeric_string
+)
 
 # Load data
-examples = load_json_examples("data/examples.json")
+examples = load_json_examples("data/prompt_examples/prompt_examples.json")
 user_story = load_user_story_from_txt("data/story.txt")
 
 # Save results
 save_user_story_to_files(user_story, "output/story.txt")
 save_cases_to_csv(test_cases, "output/cases.csv")
+
+# Generate individual test files (NEW)
+generate_individual_test_files(test_cases_json, "output/run_dir", "test")
+
+# Format utilities (NEW)
+formatted_action = _format_action_with_line_breaks("AS A: user I WANT TO: do something")
+alphanumeric_data = _to_alphanumeric_string({"key": "value", "array": [1, 2, 3]})
 ```
 
 ---
@@ -698,6 +727,10 @@ python -m src.main
 - [x] Modular architecture
 - [x] Comprehensive testing framework
 - [x] Professional logging and metrics
+- [x] Individual test case file generation
+- [x] Gherkin keyword preservation in Spanish
+- [x] Advanced output formatting and organization
+- [x] Enhanced file detection and processing
 
 ### 🔄 In Development (v1.1.0)
 - [ ] Docker containerization

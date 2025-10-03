@@ -215,3 +215,193 @@ def save_user_story_to_files(user_story_text, base_output_path):
     except Exception as e:
         print(f"ERROR saving user story: {e}")
         return False
+
+
+def generate_individual_test_files(test_cases_json, output_dir, input_filename=""):
+    """
+    Generate individual JSON files for each test case containing only the steps.
+
+    Args:
+        test_cases_json: JSON string or dict containing test cases
+        output_dir: Base output directory
+        input_filename: Input filename for naming (optional)
+
+    Returns:
+        bool: Success status
+    """
+    try:
+        # Parse the test cases JSON if it's a string
+        if isinstance(test_cases_json, str):
+            # Clean the response
+            test_cases_json = test_cases_json.strip()
+            if test_cases_json.startswith("```json"):
+                test_cases_json = test_cases_json[7:]
+            if test_cases_json.endswith("```"):
+                test_cases_json = test_cases_json[:-3]
+            test_cases_json = test_cases_json.strip()
+
+            data = json.loads(test_cases_json)
+        else:
+            data = test_cases_json
+
+        # Create test directory
+        test_dir = Path(output_dir) / "test"
+        test_dir.mkdir(exist_ok=True)
+
+        files_created = 0
+
+        # Process English test cases
+        if isinstance(data, dict) and 'english_test_cases' in data:
+            for test_case in data['english_test_cases']:
+                test_id = test_case.get('id', f"TEST-{uuid.uuid4().hex[:6].upper()}")
+                steps = _extract_steps_from_test_case(test_case)
+
+                if steps:
+                    filename = f"{test_id}_en.json"
+                    filepath = test_dir / filename
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        json.dump(steps, f, indent=2, ensure_ascii=False)
+                    files_created += 1
+
+        # Process Spanish test cases
+        if isinstance(data, dict) and 'spanish_test_cases' in data:
+            for test_case in data['spanish_test_cases']:
+                test_id = test_case.get('id', f"TEST-{uuid.uuid4().hex[:6].upper()}")
+                steps = _extract_steps_from_test_case(test_case)
+
+                if steps:
+                    filename = f"{test_id}_es.json"
+                    filepath = test_dir / filename
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        json.dump(steps, f, indent=2, ensure_ascii=False)
+                    files_created += 1
+
+        # Handle legacy format (direct array of test cases)
+        elif isinstance(data, list):
+            for test_case in data:
+                test_id = test_case.get('id', f"TEST-{uuid.uuid4().hex[:6].upper()}")
+                steps = _extract_steps_from_test_case(test_case)
+
+                if steps:
+                    # Assume English for legacy format
+                    filename = f"{test_id}_en.json"
+                    filepath = test_dir / filename
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        json.dump(steps, f, indent=2, ensure_ascii=False)
+                    files_created += 1
+
+        if files_created > 0:
+            print(f"OK - Generated {files_created} individual test case files in '{test_dir}'")
+            return True
+        else:
+            print("WARNING - No test case files were generated")
+            return False
+
+    except Exception as e:
+        print(f"ERROR generating individual test files: {e}")
+        return False
+
+
+def _extract_steps_from_test_case(test_case):
+    """
+    Extract and transform steps from a test case.
+    Converts all parameter values to alphanumeric strings.
+
+    Args:
+        test_case: Test case dictionary
+
+    Returns:
+        list: List of step dictionaries with ACTION, DATA, RESULT (all alphanumeric strings)
+    """
+    steps = []
+
+    # Find all step keys and sort them
+    step_keys = sorted([k for k in test_case.keys() if k.upper().startswith('STEP')],
+                      key=lambda k: int(''.join(filter(str.isdigit, k))))
+
+    for step_key in step_keys:
+        step_data = test_case[step_key]
+        if isinstance(step_data, dict):
+            # Transform the step data
+            action_raw = step_data.get('ACTION', step_data.get('action', ''))
+            transformed_step = {
+                'ACTION': _format_action_with_line_breaks(action_raw),
+                'DATA': _to_alphanumeric_string(step_data.get('INPUT_DATA', step_data.get('input_data', None))),
+                'RESULT': _to_alphanumeric_string(step_data.get('EXPECTED_RESULT', step_data.get('expected_result', '')))
+            }
+            steps.append(transformed_step)
+
+    return steps
+
+
+def _format_action_with_line_breaks(action_text):
+    """
+    Format ACTION text by adding line breaks after Gherkin keywords and their colons.
+
+    Args:
+        action_text: The action text to format
+
+    Returns:
+        str: Formatted action text with line breaks
+    """
+    if not action_text:
+        return ""
+
+    # Convert to string first if it's not already
+    action_str = _to_alphanumeric_string(action_text)
+
+    # Add line breaks before I WANT TO and AND keywords (but not AS A)
+    import re
+
+    # Replace "I WANT TO: " with "\nI WANT TO: "
+    action_str = re.sub(r'\b(I WANT TO:\s+)', r'\n\1', action_str)
+    # Replace "AND: " with "\nAND: "
+    action_str = re.sub(r'\b(AND:\s+)', r'\n\1', action_str)
+
+    return action_str.strip()
+
+
+def _to_alphanumeric_string(value):
+    """
+    Convert any value to an alphanumeric string representation.
+
+    Args:
+        value: Any value (string, dict, list, None, etc.)
+
+    Returns:
+        str: Alphanumeric string representation
+    """
+    if value is None:
+        return ""
+
+    if isinstance(value, str):
+        # Keep strings as-is, but ensure they're clean
+        return value.strip()
+
+    if isinstance(value, (int, float)):
+        # Convert numbers to string
+        return str(value)
+
+    if isinstance(value, dict):
+        # Convert dict to a clean alphanumeric string
+        # Format: key1:value1, key2:value2
+        pairs = []
+        for k, v in value.items():
+            k_clean = ''.join(c for c in str(k) if c.isalnum() or c in ' _-')
+            v_clean = ''.join(c for c in str(v) if c.isalnum() or c in ' _-.,')
+            if k_clean and v_clean:
+                pairs.append(f"{k_clean}:{v_clean}")
+        return ', '.join(pairs)
+
+    if isinstance(value, list):
+        # Convert list to comma-separated alphanumeric string
+        items = []
+        for item in value:
+            item_str = _to_alphanumeric_string(item)
+            if item_str:
+                items.append(item_str)
+        return ', '.join(items)
+
+    # For any other type, convert to string and clean
+    str_value = str(value)
+    return ''.join(c for c in str_value if c.isalnum() or c in ' _-.,')

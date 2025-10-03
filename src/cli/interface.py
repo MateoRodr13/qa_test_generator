@@ -35,10 +35,11 @@ class InteractiveCLI:
     def select_input_file(self) -> Optional[str]:
         """Let user select from available input files in data directory."""
         data_dir = settings.data_dir
-        txt_files = list(data_dir.glob("*.txt"))
+        all_files = list(data_dir.glob("*"))
+        txt_files = [f for f in all_files if f.is_file() and (f.suffix == '.txt' or not f.suffix)]
 
         if not txt_files:
-            self.display_error("No .txt files found in data directory")
+            self.display_error("No input files found in data directory")
             return None
 
         if len(txt_files) == 1:

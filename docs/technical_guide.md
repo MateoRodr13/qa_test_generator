@@ -4,7 +4,7 @@
 
 ---
 
-## 🎯 Introducción para Desarrolladores Junior
+## 🎯 Introducción
 
 ¡Bienvenido! Esta guía te explicará **línea por línea** cómo funciona el **QA Test Generator**. Está diseñada para que incluso si eres nuevo en Python, puedas entender el código completo.
 

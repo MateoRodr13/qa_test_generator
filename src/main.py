@@ -27,12 +27,18 @@ def main():
     # Initialize Workflow Manager
     workflow_manager = WorkflowManager()
 
-    # Execute complete workflow (with initial selection)
-    context = workflow_manager.execute_complete_workflow(interactive=True, base_output_dir=OUTPUT_DIR)
+    # Execute complete workflow
+    # Set interactive=True for interactive mode (user selects files and providers)
+    context = workflow_manager.execute_complete_workflow(
+        interactive=True,
+        default_user_story_path=USER_STORY_PATH,
+        default_examples_path=EXAMPLES_PATH,
+        base_output_dir=OUTPUT_DIR
+    )
 
     # Check final status
     if context.state.value == "completed":
-        logger.info("Interactive workflow completed successfully")
+        logger.info("AI Test Case Generator - Interactive Mode completed successfully")
     else:
         logger.error(f"Workflow failed with state: {context.state.value}")
         if 'error' in context.metadata:
